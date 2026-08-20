@@ -10,7 +10,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 ENV PYTHONPATH=/opt/ai-toolkit
 ENV PYTHONUNBUFFERED=1
 
-ARG GIT_COMMIT=main
+ARG GIT_COMMIT
 
 # Install system dependencies (not already in base rocm/pytorch image)
 RUN apt-get update && apt-get install --no-install-recommends -y \
@@ -38,7 +38,7 @@ WORKDIR /opt
 # ----- Clone source -----
 RUN git clone https://github.com/ChuloAI/ai-toolkit.git /opt/ai-toolkit-src && \
     cd /opt/ai-toolkit-src && \
-    git checkout ${GIT_COMMIT}
+    git checkout --detach ${GIT_COMMIT:-main}
 
 # ----- Install Python dependencies -----
 RUN pip3 install --no-cache-dir -r /opt/ai-toolkit-src/requirements.txt
