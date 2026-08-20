@@ -1,4 +1,4 @@
-name: Check ComfyUI Version
+name: Check ai-toolkit Version
 
 on:
   schedule:
@@ -17,10 +17,10 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.TAG_PUSH_TOKEN }}
 
-      - name: Fetch latest ComfyUI release
+      - name: Fetch latest ai-toolkit release
         id: latest_tag
         run: |
-          LATEST=$(curl -sL https://api.github.com/repos/comfyanonymous/ComfyUI/releases/latest | jq -r '.tag_name')
+          LATEST=$(curl -sL https://api.github.com/repos/ChuloAI/ai-toolkit/releases/latest | jq -r '.tag_name')
           echo "latest_tag=${LATEST}" >> "$GITHUB_OUTPUT"
 
       - name: Read last tagged version
@@ -38,7 +38,7 @@ jobs:
           LATEST="${{ steps.latest_tag.outputs.latest_tag }}"
           LAST="${{ steps.last_version.outputs.last_version }}"
 
-          echo "Latest ComfyUI: ${LATEST}"
+          echo "Latest ai-toolkit: ${LATEST}"
           echo "Last tagged:    ${LAST}"
 
           if [ "${LATEST}" != "${LAST}" ]; then
@@ -48,5 +48,5 @@ jobs:
             git tag "${LATEST}"
             git push origin "${LATEST}"
           else
-            echo "No new ComfyUI version detected. Skipping."
+            echo "No new ai-toolkit version detected. Skipping."
           fi
