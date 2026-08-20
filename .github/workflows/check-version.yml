@@ -1,0 +1,52 @@
+name: Check ComfyUI Version
+
+on:
+  schedule:
+    # Check daily at 00:00 UTC
+    - cron: "0 0 * * *"
+  workflow_dispatch:
+
+jobs:
+  check:
+    name: Check for New Version
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.TAG_PUSH_TOKEN }}
+
+      - name: Fetch latest ComfyUI release
+        id: latest_tag
+        run: |
+          LATEST=$(curl -sL https://api.github.com/repos/comfyanonymous/ComfyUI/releases/latest | jq -r '.tag_name')
+          echo "latest_tag=${LATEST}" >> "$GITHUB_OUTPUT"
+
+      - name: Read last tagged version
+        id: last_version
+        run: |
+          LAST=$(git tag -l 'v*' --sort=-v:refname | head -n1)
+          if [ -n "${LAST}" ]; then
+            echo "last_version=${LAST}" >> "$GITHUB_OUTPUT"
+          else
+            echo "last_version=none" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create tag if new version
+        run: |
+          LATEST="${{ steps.latest_tag.outputs.latest_tag }}"
+          LAST="${{ steps.last_version.outputs.last_version }}"
+
+          echo "Latest ComfyUI: ${LATEST}"
+          echo "Last tagged:    ${LAST}"
+
+          if [ "${LATEST}" != "${LAST}" ]; then
+            echo "New version detected: ${LATEST}. Creating tag ${LATEST}."
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git tag "${LATEST}"
+            git push origin "${LATEST}"
+          else
+            echo "No new ComfyUI version detected. Skipping."
+          fi
